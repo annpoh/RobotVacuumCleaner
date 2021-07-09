@@ -6,4 +6,4 @@ import time
 pycom.heartbeat(False)
 pycom.rgbled(0xFFFF00)
 print('Hello there!')
-print('Connected while running this file: {}'.format(WLAN(mode=WLAN.STA).isconnected()))
+
