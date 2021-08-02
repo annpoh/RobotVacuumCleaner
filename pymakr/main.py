@@ -1,42 +1,56 @@
 import pycom
-import time
-from machine import Pin
+from machine import I2C
 import machine
 import lib.rvc as rvc
 import lib.keys as keys
+import lib.mpu6050 as mpu
+import time
+from math import sqrt
 
-pycom.heartbeat(False)
-pycom.rgbled(0x00FFFF)
-"""
+def checkCollision(acceleration, Glimit=1):
+    # Calculate the length of the acceleration vector
+    absAcc = sqrt(sum([i*i for i in acceleration]))
+    return absAcc > Glimit
+
+## Pybytes signals defined (fill it up as you add more!):
+    # 0: 
+    # 1: Collision count
+
+# Indicate smartconfig process is finished
+pycom.rgbled(0xAA1155)
+
+# Setup starts here!
 if not pybytes.is_connected():
     print("Not connected to pybytes. Updating config file:")
     pybytes.set_config('wifi', {'ssid': keys.SSID, 'password' : keys.PASSWORD})
     print("Trying to connect...")
     pybytes.connect()
-    
+
 # Sync Real Time Clock
 rtc = machine.RTC()
 rtc.ntp_sync(keys.NTP_SERVER)
+print("Time is synced!")
 
-"""
-time.sleep(5)
+# Create an instance of the Robot Vacuum Cleaner class
+robot = rvc.RobotVacuumCleaner()
 
-en12 = Pin('P19', mode=Pin.OUT)
-pinA1 = Pin('P20', mode=Pin.OUT)
-pinA2 = Pin('P21', mode=Pin.OUT)
+# Create I2C instance on bus 0 
+# Default pins on Lopy4 are P9 (SDA) and P10 (SCL)
+i2c = I2C(0, I2C.MASTER, baudrate=115200)
 
-en12(0)
-pinA1(1)
-pinA2(0)
+# Create an accelerometer object
+accelerometer = mpu.accel(i2c)
+accelerometer.calibrate()
+print(accelerometer.offsets)
 
+robot.moveForward()
 
-while True: #Forever loop
-    # Send current runtime to pybytes
-    pycom.rgbled(0xFFFF00)  # Lime
-    time.sleep(1) #sleep for 1 second
+# Indicate that initialization process is done
+pycom.rgbled(0x00FF00)
 
-    pycom.rgbled(0xFF3300)  # Orange
-    time.sleep_ms(1000) #sleep for 1000 ms
-
-    pycom.rgbled(0x00FF00)  # Green
-    time.sleep(1)
+while True:
+    if checkCollision(accelerometer.get_acceleration()):
+        robot.handleCollision()
+        pybytes.send_signal(1, robot.collisionCount)
+        robot.reportData()
+    time.sleep(0.01)

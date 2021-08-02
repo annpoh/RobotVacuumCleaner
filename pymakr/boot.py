@@ -1,8 +1,6 @@
-from network import WLAN
-import lib.keys as keys
 import pycom
-import time
 
+# Indicate startup (boot file runs before smartconfig)
 pycom.heartbeat(False)
 pycom.rgbled(0xFFFF00)
 print('Hello there!')
