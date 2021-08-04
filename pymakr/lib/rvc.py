@@ -1,7 +1,6 @@
 import time
 import random
 from machine import PWM, Pin
-from pybytes import Pybytes
 from pycom import rgbled
 
 FORWARD = (1,0)
@@ -80,9 +79,10 @@ class RobotVacuumCleaner():
 
     def handleCollision(self):
         self.stop()
+        
         # Collect the randomness<3
         turnright = random.choice(True, False) # Generate turn direction
-        turntime = random.uniform(2.0, 5.0) # Generate turn duration
+        turntime = random.float_between(2.0, 5.0) # Generate turn duration
 
         time.sleep(2)
         
@@ -112,11 +112,7 @@ class RobotVacuumCleaner():
     def setFanSpeed(self, dutyCycle=0.5):
         self.fanPWM.duty_cycle(dutyCycle)
 
-    def reportData(self):
-        # Can be extended with further data, like fan speed, acceleration etc
-        #Pybytes.send_signal(1, self.collisionCount)
-        print("Remember to implement this!")
-    
+
 
 
     

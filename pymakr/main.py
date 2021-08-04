@@ -52,5 +52,4 @@ while True:
     if checkCollision(accelerometer.get_acceleration()):
         robot.handleCollision()
         pybytes.send_signal(1, robot.collisionCount)
-        robot.reportData()
     time.sleep(0.01)
